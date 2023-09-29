@@ -1,0 +1,107 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    {% if message %}
+        <h3>{{ message }}</h3>
+    {% else %}
+        
+        <h2>{{ listing.title }}</h2>
+        <!-- Add or remove user from watchers -->
+        {% if user.is_authenticated %}
+            {% if request.user in listing.watchers.all %}
+                <a href="?watch=false">Unwatch</a>
+            {% else %}
+                <a href="?watch=true">Watchlist</a>
+            {% endif %}
+        {% endif %}
+        <br>
+
+        {% if listing.listed_by == request.user and listing.is_active %}
+            <a href="?unlist=true">Unlist</a>
+        {% elif not listing.is_active %}
+            <h6>Unlisted</h6>
+
+            {% if listing.winner == request.user %}
+                <div class="alert alert-success" role="alert">
+                    You won this auction
+                </div>
+            {% endif %}
+
+        {% endif %}
+
+        <br>
+
+        <img src="{{ listing.image_url }}" alt="Auction image">
+        <div>{{ listing.description }}</div>
+        <h3>{{ listing.current_price }}</h3>
+
+        <!-- Show the current state of the bids -->
+        <div> {{ listing.bids.all.count }} bid(s) so far.
+        <!-- If theres no bids yet -->
+        {% if listing.current_highest_bid is None %}
+           Make a first bid!</div>
+        {% else %}
+            <!-- If your bid is the current -->
+            {% if listing.current_highest_bid.user == request.user %}
+               Your bid is the current bid. </div>
+            <!-- If someone else bid is other -->
+            {% else %}
+               Someone elses bid is the current bid. </div>
+            {% endif %}
+        {% endif %}
+
+        {% if user.is_authenticated and listing.is_active %}
+            <form method="post">
+                {% csrf_token %}
+                {{ new_bid }}
+                <input type="submit" value="Place Bid">
+            </form>
+        {% endif %}
+
+        <br>
+
+        <div class="details">
+            <h4>Details:</h4>
+            <ul>
+                <li>Listed By: {{ listing.listed_by }}</li>
+                <li>Category: 
+                    {% if listing.category is None %}
+                        No Category Listed
+                    {% else %}
+                        {{ listing.category }}
+                    {% endif %}
+                    
+                </li>
+            </ul>
+        </div>
+
+        <!-- New comment form -->
+        {% if user.is_authenticated %}
+            <form method="post">
+                {% csrf_token %}
+                {{ new_comment }}
+                <input type="submit" value="New Comment">
+            </form>
+        {% endif %}
+        
+        <!-- Show all existing comments -->
+        <div class="comments">
+            <h4>Comments:</h4>
+
+            {% for comment in comments %}
+                <div class="comment">
+                    <p> 
+                        <b>{{ comment.commented_by }}:</b>
+                        {{ comment.comment_text }}
+                    </p>
+                    <p>Commented on {{ comment.datetime_commented }}</p>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+    
+{% endblock %}
