@@ -6,6 +6,7 @@
         <h4>{{ message }}</h4>
     {% endif %}
 
+    <!-- NEW AUCTION FORM -->
     <form action="{% url 'new' %}" method="post">
         {% csrf_token %}
         {{ form }}

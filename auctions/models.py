@@ -27,7 +27,7 @@ class AuctionListing(models.Model):
     def __str__(self):
         return self.title
     
-    # When looking at auction details check this function to show the winner if not active and modify template
+    # When looking at auction details check this function to show the winner if not active
     @property
     def is_active(self):
         return self.end_datetime > datetime.now(pytz.UTC)
@@ -51,7 +51,7 @@ class AuctionListing(models.Model):
                 self.winner = highest_bid.user
                 self.save()
 
-    # I can call this function manually after checking is_active to determine the winner 
+    # I can call this function manually after ending the auction to determine the winner 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         #  Checking that the auction finished and there is no existing winner already

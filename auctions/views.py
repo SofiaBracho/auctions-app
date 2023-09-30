@@ -21,12 +21,18 @@ class NewAuctionForm(forms.Form):
     title = forms.CharField(label="Title", max_length=255)
     description = forms.CharField(label="Description", widget=forms.Textarea)
     end_datetime = forms.DateTimeField(initial=get_default_end_datetime)
-    initial_price = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0, initial=0.00)
+    initial_price = forms.DecimalField(max_digits=10, decimal_places=2, min_value=0, initial=0.00, required=True)
     image_url = forms.URLField(label="Auction image URL", required=False, empty_value=DEFAULT_IMG)
-    category = forms.ModelChoiceField(queryset=Category.objects.all(), empty_label="--None--")
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), empty_label="--None--", required=False)
+    
+    def clean_initial_price(self):
+        initial_price = self.cleaned_data.get('initial_price')
+        if initial_price is None or initial_price <= 0:
+            raise forms.ValidationError('Initial price must be greater than 0')
+        return initial_price
 
 class NewCommentForm(forms.Form):
-    comment_text = forms.CharField(label="Description", widget=forms.Textarea)
+    comment_text = forms.CharField(label="Add new", widget=forms.Textarea)
 
 class NewBidForm(forms.Form):
     amount = forms.DecimalField()
@@ -39,7 +45,7 @@ class NewBidForm(forms.Form):
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
-        if self.min_amount is not None and amount < self.min_amount:
+        if self.min_amount is not None and amount <= self.min_amount:
             raise ValidationError('Your bid must be greater than the current price.')
         return amount
 
@@ -52,37 +58,23 @@ def new(request):
 
         # Check if data is valid
         if form.is_valid():
-
-            # Isolate the inputs from the cleaned data
-            # TODO: Reduce this redundance
-            title = form.cleaned_data["title"]
-            description = form.cleaned_data["description"]
-            listed_by = request.user
-            datetime_listed = datetime.now(pytz.UTC)
-            end_datetime = form.cleaned_data["end_datetime"]
-            initial_price = form.cleaned_data["initial_price"]
-            image_url = form.cleaned_data["image_url"]
-            category = form.cleaned_data["category"]
-
             # Add the new auction list to the DB
             al = AuctionListing(
-                title=title, 
-                description=description, 
-                listed_by=listed_by, 
-                datetime_listed=datetime_listed, 
-                end_datetime=end_datetime, 
-                initial_price=initial_price,
-                image_url=image_url,
-                category=category
+                title=form.cleaned_data["title"], 
+                description=form.cleaned_data["description"], 
+                listed_by=request.user, 
+                datetime_listed=datetime.now(pytz.UTC), 
+                end_datetime=form.cleaned_data["end_datetime"],
+                initial_price=form.cleaned_data["initial_price"],
+                image_url=form.cleaned_data["image_url"],
+                category=form.cleaned_data["category"]
             )
-
             al.save()
 
             # Redirect user to list of tasks
             return HttpResponseRedirect(reverse("index"))
 
         else:
-
             # If the form is invalid, re-render the page with a message.
             return render(request, "auctions/new.html", {
                 "form": form,
@@ -116,7 +108,11 @@ def listings(request, id):
     
     # Validates new Bid and insert in DB
     if request.POST.get('amount'):
-        form = NewBidForm(request.POST)
+        form = NewBidForm(
+            min_amount=decimal.Decimal(listing.current_price), 
+            initial={'amount': decimal.Decimal(listing.current_price)},
+            data=request.POST
+        )
 
         # Check if data is valid
         if form.is_valid():
@@ -132,8 +128,16 @@ def listings(request, id):
         else:
             # Renders an error if invalid bid
             return render(request, "auctions/listings.html", {
+                "listing": listing,
+                "comments": listing.comments.all().order_by('-datetime_commented'),
+                "new_comment": NewCommentForm(),
+                "new_bid": NewBidForm(
+                    min_amount= decimal.Decimal(listing.current_price), 
+                    initial={'amount': decimal.Decimal(listing.current_price)
+                }),
                 "message": "Error: Invalid bid amount"
             })
+            
         
     # Unlist Auction and determine winner
     if request.GET.get('unlist') == "true" and request.user == listing.listed_by:
@@ -186,6 +190,32 @@ def index(request):
     return render(request, "auctions/index.html", {
         "listings": listings
     })
+
+
+def categories(request, category='all'):
+    try:
+        if category == 'all':
+            # Get all categories
+            categories = Category.objects.all().order_by("-name")
+            # Render all categories
+            return render(request, "auctions/categories.html", {
+                "categories": categories
+            })
+        else:
+            # Get category object
+            cat = Category.objects.get(name=category)
+            # Get all auction listings where category match and are active
+            listings = AuctionListing.objects.filter(category=cat.id, end_datetime__gt=timezone.now())
+            # Render all listings of current category
+            return render(request, "auctions/index.html", {
+                "listings": listings,
+                "category": category
+            })
+    except:
+        return render(request, "auctions/index.html", {
+            "listings": None,
+            "message": "Error 404: Category not found"
+        })
 
 
 def login_view(request):

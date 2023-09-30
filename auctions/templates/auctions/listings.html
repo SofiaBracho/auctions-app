@@ -4,10 +4,11 @@
 
     {% if message %}
         <h3>{{ message }}</h3>
-    {% else %}
-        
+    {% endif %}
+    
+    {% if listing %}
         <h2>{{ listing.title }}</h2>
-        <!-- Add or remove user from watchers -->
+        <!-- ADD OR REMOVE USER FROM LISTING WATCHERS -->
         {% if user.is_authenticated %}
             {% if request.user in listing.watchers.all %}
                 <a href="?watch=false">Unwatch</a>
@@ -17,6 +18,7 @@
         {% endif %}
         <br>
 
+        <!-- UNLIST AUCTION IF USER IS THE OWNER -->
         {% if listing.listed_by == request.user and listing.is_active %}
             <a href="?unlist=true">Unlist</a>
         {% elif not listing.is_active %}
@@ -34,24 +36,27 @@
 
         <img src="{{ listing.image_url }}" alt="Auction image">
         <div>{{ listing.description }}</div>
-        <h3>{{ listing.current_price }}</h3>
+        <h3>${{ listing.current_price }}</h3>
 
-        <!-- Show the current state of the bids -->
+        <!-- SHOW THE CURRENT STATE OF THE BIDS -->
         <div> {{ listing.bids.all.count }} bid(s) so far.
-        <!-- If theres no bids yet -->
+
+        <!-- IF THERE'S NO BIDS YET -->
         {% if listing.current_highest_bid is None %}
-           Make a first bid!</div>
+            Make a first bid!</div>
         {% else %}
-            <!-- If your bid is the current -->
+            <!-- IF YOUR BID IS THE CURRENT -->
             {% if listing.current_highest_bid.user == request.user %}
-               Your bid is the current bid. </div>
-            <!-- If someone else bid is other -->
+                Your bid is the current bid. 
+            <!-- IF SOMEONE ELSES BID IS THE CURRENT -->
             {% else %}
-               Someone elses bid is the current bid. </div>
+                Someone elses bid is the current bid. 
             {% endif %}
+            </div>
         {% endif %}
 
-        {% if user.is_authenticated and listing.is_active %}
+        <!-- NEW BID FORM -->
+        {% if user.is_authenticated and listing.is_active and listing.listed_by != request.user %}
             <form method="post">
                 {% csrf_token %}
                 {{ new_bid }}
@@ -61,6 +66,7 @@
 
         <br>
 
+        <!-- AUCTION DETAILS  -->
         <div class="details">
             <h4>Details:</h4>
             <ul>
@@ -71,12 +77,11 @@
                     {% else %}
                         {{ listing.category }}
                     {% endif %}
-                    
                 </li>
             </ul>
         </div>
 
-        <!-- New comment form -->
+        <!-- NEW COMMENT FORM -->
         {% if user.is_authenticated %}
             <form method="post">
                 {% csrf_token %}
@@ -85,7 +90,7 @@
             </form>
         {% endif %}
         
-        <!-- Show all existing comments -->
+        <!-- SHOW ALL EXISTING COMMENTS -->
         <div class="comments">
             <h4>Comments:</h4>
 
@@ -98,10 +103,10 @@
                     <p>Commented on {{ comment.datetime_commented }}</p>
 
                 </div>
+            {% empty %}
+                <div>No comments yet.</div>
             {% endfor %}
-
         </div>
-
     {% endif %}
     
 {% endblock %}
