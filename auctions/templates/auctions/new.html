@@ -7,9 +7,9 @@
     {% endif %}
 
     <!-- NEW AUCTION FORM -->
-    <form action="{% url 'new' %}" method="post">
+    <form action="{% url 'new' %}" method="post" id="new-auction-form">
         {% csrf_token %}
         {{ form }}
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit" class="btn btn-success mt-2">
     </form>
 {% endblock %}

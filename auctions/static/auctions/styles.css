@@ -6,3 +6,169 @@ form {
     display: flex;
     flex-direction: column;
 }
+
+.auction-listings {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+}
+@media screen and (min-width:1000px) {
+    .auction-listings {
+        display: flex;
+        flex-direction: column;
+        width: 60%;
+    }
+}
+.auction-listings a {
+    text-decoration: none;
+    color: #000;
+}
+.auction-listing {
+    display: flex;
+    flex-direction: row;
+    padding: 1rem;
+    background: #f1f1f1;
+    margin: .5rem 0;
+    border-radius: 6px;
+    transition: all .3s ease;
+    cursor: pointer;
+}
+.auction-listing:hover {
+    transform: scale(1.05);
+}
+.img-cont {
+    min-width: 250px;
+    min-height: 200px;
+    max-width: 250px;
+    max-height: 200px;
+    margin-right: 2rem;
+}
+.img-cont img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+/* LISTING DETAILS PAGE */
+
+.container {
+    min-width: 90%;
+    background: #f1f1f1;
+    padding: 1rem;
+    border-radius: 6px;
+}
+.listing-heading {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.listing-btns {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.listing-btns a {
+    margin-left: 1rem;
+
+}
+.listing-img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+}
+#description {
+    margin: 1.5rem 0;
+}
+#price {
+    font-weight: bold;
+    font-size: 2rem;
+    color: green;
+}
+#bid-form input:not([type="submit"]){
+    border-radius: 6px;
+    padding: .3rem;
+    color: gray;
+}
+.details ul {
+    list-style: none;
+}
+.details ul li a {
+    text-decoration: none;
+}
+
+#comment-form textarea {
+    border-radius: 6px;
+    padding: .3rem;
+    color: gray;
+    resize: none;
+    height: 100px;
+}
+
+#comments {
+    margin: 1.5rem 0;
+}
+
+.comment {
+    background: #fff;
+    padding: .75rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    max-width: 80%;
+}
+.comment-date {
+    font-style: italic;
+    font-size: smaller;
+}
+
+
+/* CATEGORIES */
+
+.cat-link {
+    display: inline-block;
+    min-width: 200px;
+    max-width: max-content;
+    background: gray;
+    border-radius: 6px;
+    margin: .5rem .5rem 0 0;
+    transition: all .3s ease;
+    text-align: center;
+}
+.cat-link a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    height: 100%;
+}
+a span.cat {
+    display: block;
+    padding: .5rem 2rem;
+}
+.cat-link:hover {
+    background: #b9b9b9;
+    transform: scale(1.05);
+}
+
+/* NEW AUCTION LISTING */
+
+#new-auction-form input:not([type="submit"]),
+#new-auction-form textarea,
+#new-auction-form select
+{
+    border-radius: 6px;
+    padding: .3rem;
+    color: gray;
+}
+#new-auction-form textarea {
+    resize: none;
+    height: 100px;
+}
+
+/* LOGIN - REGISTER */
+
+#login-form input:not([type="submit"]),
+#register-form input:not([type="submit"])
+{
+    margin-bottom: 1rem;
+}

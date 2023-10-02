@@ -1,40 +1,49 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2> 
+
+    <h2>{{ title }}</h2> 
     <!-- SHOW SPECIFIC CATEGORY IF EXISTS -->
-    <h4>
-        {% if category is not None %}
+    {% if category is not None %}
+        <h4>
             {{ category }}
-        {% elif message %}
-            {{ message }}
-        {% endif %}
-    </h4>
-
-    <!-- AUCTION LISTINGS -->
-    {% if message is None %}
-
-        <ul>
-            {% for listing in listings %}   
-
-                <div class="container row">
-                    <div class="col">
-                        <img src="{{listing.image_url}}" alt="Auction image" width="200px">
-                    </div>
-                    <div class="col">
-                        <a href="{% url 'listings' listing.id %}">
-                            <h3>{{ listing.title }}</h3>
-                        </a>
-                        <b>Price: ${{ listing.current_price }}</b>
-                        <div>Created on {{ listing.datetime_listed }}</div>
-                    </div>
-                </div>
-
-            {% empty %}
-                <li>Sorry, no auctions in this list.</li>
-            {% endfor %}
-
-        </ul>
-
+        </h4>
+    {% elif message %}
+        <div class="alert alert-secondary mt-3" role="alert">
+            <b> 
+                {{ message }}
+            </b>
+        </div>
     {% endif %}
+
+    <div class="row">
+
+        <!-- AUCTION LISTINGS -->
+        {% if message is None %}
+
+            <ul class="auction-listings">
+                {% for listing in listings %}   
+
+                <a href="{% url 'listings' listing.id %}">
+                    <li class="auction-listing">
+                            <div class="img-cont">
+                                <img src="{{listing.image_url}}" alt="Auction image" width="200px">
+                            </div>
+                    
+                            <div class="auction-details">
+                                <h3>{{ listing.title }}</h3>
+                                <b>Price: ${{ listing.current_price }}</b>
+                                <div>Created on {{ listing.datetime_listed }}</div>
+                            </div>
+                    </li>
+                </a>
+
+                {% empty %}
+                    <li>Sorry, no auctions in this list.</li>
+                {% endfor %}
+
+            </ul>
+        
+        {% endif %}
+    </div>
 {% endblock %}

@@ -4,15 +4,17 @@
     <h2>Categories</h2>
 
     <!-- LIST ALL CATEGORIES -->
-    <ul class="categories">
+    <div class="categories">
         {% for category in categories %}   
-
-            <li class="cat">
-                <a href="{% url 'categories' category.name %}">{{ category.name }}</a>
-            </li>
-
+            <div class="cat-link">
+                <a href="{% url 'categories' category.name %}">
+                    <span class="cat">
+                        {{ category.name }}
+                    </span>
+                </a>
+            </div>
         {% empty %}
             <li>Sorry, no existing categories.</li>
         {% endfor %}
-    </ul>
+    </div>
 {% endblock %}

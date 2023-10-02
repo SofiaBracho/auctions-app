@@ -2,111 +2,134 @@
 
 {% block body %}
 
-    {% if message %}
-        <h3>{{ message }}</h3>
-    {% endif %}
-    
-    {% if listing %}
-        <h2>{{ listing.title }}</h2>
-        <!-- ADD OR REMOVE USER FROM LISTING WATCHERS -->
-        {% if user.is_authenticated %}
-            {% if request.user in listing.watchers.all %}
-                <a href="?watch=false">Unwatch</a>
-            {% else %}
-                <a href="?watch=true">Watchlist</a>
-            {% endif %}
-        {% endif %}
-        <br>
+    <div class="container">
 
-        <!-- UNLIST AUCTION IF USER IS THE OWNER -->
-        {% if listing.listed_by == request.user and listing.is_active %}
-            <a href="?unlist=true">Unlist</a>
-        {% elif not listing.is_active %}
-            <h6>Unlisted</h6>
+        {% if listing %}
+
+            <div class="listing-heading">
+
+                <h2>{{ listing.title }}</h2>
+                <div class="listing-btns">
+                    
+                    <!-- ADD OR REMOVE USER FROM LISTING WATCHERS -->
+                    {% if user.is_authenticated %}
+                        {% if request.user in listing.watchers.all %}
+                            <a href="?watch=false" class="btn btn-warning">Unwatch</a>
+                        {% else %}
+                            <a href="?watch=true" class="btn btn-success">Watchlist</a>
+                        {% endif %}
+                    {% endif %}
+
+                    <br>
+                    
+                    <!-- UNLIST AUCTION IF USER IS THE OWNER -->
+                    {% if listing.listed_by == request.user and listing.is_active %}
+                        <a href="?unlist=true" class="btn btn-danger">Unlist</a>
+                    {% endif %}
+                
+                </div>
+            </div>
+
+            {% if not listing.is_active %}
+                <div class="alert alert-danger mt-3" role="alert">
+                    Unlisted Auction
+                </div>
+            {% endif %}
 
             {% if listing.winner == request.user %}
-                <div class="alert alert-success" role="alert">
+                <div class="alert alert-success mt-3" role="alert">
                     You won this auction
                 </div>
             {% endif %}
 
-        {% endif %}
+            <img src="{{ listing.image_url }}" alt="Auction image" class="listing-img">
+            <div id="description">{{ listing.description }}</div>
+            <h3 id="price">${{ listing.current_price }}</h3>
 
-        <br>
+            <!-- SHOW THE CURRENT STATE OF THE BIDS -->
+            <div> 
+                <b>
+                    {{ listing.bids.all.count }} bid(s) so far.
+                </b>
 
-        <img src="{{ listing.image_url }}" alt="Auction image">
-        <div>{{ listing.description }}</div>
-        <h3>${{ listing.current_price }}</h3>
+                <!-- IF THERE'S NO BIDS YET -->
+                {% if listing.current_highest_bid is None %}
+                    Make a first bid!</div>
+                {% else %}
+                    <!-- IF YOUR BID IS THE CURRENT -->
+                    {% if listing.current_highest_bid.user == request.user %}
+                        Your bid is the current bid. 
+                    <!-- IF SOMEONE ELSES BID IS THE CURRENT -->
+                    {% else %}
+                        Someone elses bid is the current bid. 
+                    {% endif %}
 
-        <!-- SHOW THE CURRENT STATE OF THE BIDS -->
-        <div> {{ listing.bids.all.count }} bid(s) so far.
+                    </div>
+                {% endif %}
 
-        <!-- IF THERE'S NO BIDS YET -->
-        {% if listing.current_highest_bid is None %}
-            Make a first bid!</div>
-        {% else %}
-            <!-- IF YOUR BID IS THE CURRENT -->
-            {% if listing.current_highest_bid.user == request.user %}
-                Your bid is the current bid. 
-            <!-- IF SOMEONE ELSES BID IS THE CURRENT -->
-            {% else %}
-                Someone elses bid is the current bid. 
+            <!-- NEW BID FORM -->
+            {% if user.is_authenticated and listing.is_active and listing.listed_by != request.user %}
+                <form method="post" id="bid-form">
+                    {% csrf_token %}
+                    {{ new_bid }}
+                    <input type="submit" value="Place Bid" class="btn btn-success mt-2">
+                </form>
             {% endif %}
+
+            <br>
+
+            <!-- AUCTION DETAILS  -->
+            <div class="details">
+                <h4>Details:</h4>
+                <ul>
+                    <li><b>Listed By:</b> {{ listing.listed_by }}</li>
+                    <li><b>Category:</b> 
+                        {% if listing.category is None %}
+                            No Category Listed
+                        {% else %}
+                            <a href="{% url 'categories' listing.category %}">
+                                {{ listing.category }}
+                            </a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+
+            <!-- NEW COMMENT FORM -->
+            {% if user.is_authenticated %}
+                <form method="post" id="comment-form">
+                    {% csrf_token %}
+                    {{ new_comment }}
+                    <input type="submit" value="New Comment" class="btn btn-success mt-2">
+                </form>
+            {% endif %}
+            
+            <!-- SHOW ALL EXISTING COMMENTS -->
+            <div id="comments">
+                <h4>Comments:</h4>
+
+                {% for comment in comments %}
+                    <div class="comment">
+                        <p> 
+                            <b>{{ comment.commented_by }}:</b>
+                            {{ comment.comment_text }}
+                        </p>
+                        <p class="comment-date">Commented on {{ comment.datetime_commented }}</p>
+
+                    </div>
+                {% empty %}
+                    <div class="alert alert-secondary mt-3" role="alert">
+                        No comments yet.
+                    </div>
+                {% endfor %}
+            </div>
+    </div>
+
+        {% elif message%}
+            <div class="alert alert-danger mt-3" role="alert">
+                {{ message }}
             </div>
         {% endif %}
 
-        <!-- NEW BID FORM -->
-        {% if user.is_authenticated and listing.is_active and listing.listed_by != request.user %}
-            <form method="post">
-                {% csrf_token %}
-                {{ new_bid }}
-                <input type="submit" value="Place Bid">
-            </form>
-        {% endif %}
-
-        <br>
-
-        <!-- AUCTION DETAILS  -->
-        <div class="details">
-            <h4>Details:</h4>
-            <ul>
-                <li>Listed By: {{ listing.listed_by }}</li>
-                <li>Category: 
-                    {% if listing.category is None %}
-                        No Category Listed
-                    {% else %}
-                        {{ listing.category }}
-                    {% endif %}
-                </li>
-            </ul>
-        </div>
-
-        <!-- NEW COMMENT FORM -->
-        {% if user.is_authenticated %}
-            <form method="post">
-                {% csrf_token %}
-                {{ new_comment }}
-                <input type="submit" value="New Comment">
-            </form>
-        {% endif %}
-        
-        <!-- SHOW ALL EXISTING COMMENTS -->
-        <div class="comments">
-            <h4>Comments:</h4>
-
-            {% for comment in comments %}
-                <div class="comment">
-                    <p> 
-                        <b>{{ comment.commented_by }}:</b>
-                        {{ comment.comment_text }}
-                    </p>
-                    <p>Commented on {{ comment.datetime_commented }}</p>
-
-                </div>
-            {% empty %}
-                <div>No comments yet.</div>
-            {% endfor %}
-        </div>
-    {% endif %}
     
 {% endblock %}

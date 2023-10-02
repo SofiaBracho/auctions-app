@@ -32,7 +32,7 @@ class NewAuctionForm(forms.Form):
         return initial_price
 
 class NewCommentForm(forms.Form):
-    comment_text = forms.CharField(label="Add new", widget=forms.Textarea)
+    comment_text = forms.CharField(label="Add a new comment", widget=forms.Textarea)
 
 class NewBidForm(forms.Form):
     amount = forms.DecimalField()
@@ -178,8 +178,9 @@ def listings(request, id):
 def watchlist(request):
     # Renders all listings in your watchlist
     listings = AuctionListing.objects.filter(watchers=request.user)
-    return render(request, "auctions/watchlist.html", {
-        "listings": listings
+    return render(request, "auctions/index.html", {
+        "listings": listings,
+        "title": "Watchlist"
     })
 
 
@@ -188,7 +189,8 @@ def index(request):
     listings = AuctionListing.objects.filter(end_datetime__gt=timezone.now())
 
     return render(request, "auctions/index.html", {
-        "listings": listings
+        "listings": listings,
+        "title": "Active listings"
     })
 
 
@@ -209,7 +211,8 @@ def categories(request, category='all'):
             # Render all listings of current category
             return render(request, "auctions/index.html", {
                 "listings": listings,
-                "category": category
+                "category": category,
+                "title": "Active listings"
             })
     except:
         return render(request, "auctions/index.html", {
